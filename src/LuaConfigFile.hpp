@@ -17,8 +17,6 @@ class LuaConfigFile
 
     const std::filesystem::path filepath_;
 
-    void create_config_file() noexcept;
-
   public:
     LuaConfigFile(const std::filesystem::path& filepath) noexcept;
 
