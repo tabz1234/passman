@@ -1,4 +1,7 @@
 #include "LuaConfigFile.hpp"
+#include "createFile.hpp"
+
+#include <fstream>
 
 LuaConfigFile::LuaConfigFile(const std::filesystem::path& filepath) noexcept
   : filepath_{ filepath }
@@ -6,6 +9,12 @@ LuaConfigFile::LuaConfigFile(const std::filesystem::path& filepath) noexcept
 {
 
     luaL_openlibs(plua_state_);
+
+    if (!std::filesystem::exists(filepath_)) [[unlikely]] {
+        createFile(filepath_);
+        std::ofstream ofs(filepath_.c_str(), std::ios::out | std::ios::app);
+        ofs << "AppDataDir = \"/usr/lib/passman\"";
+    }
 
     luaL_dofile(plua_state_, filepath.c_str());
 }
