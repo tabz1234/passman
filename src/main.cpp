@@ -1,19 +1,15 @@
 #include "LuaConfigFile.hpp"
+#include "PassmanDB.hpp"
+#include "Password.hpp"
 #include "SQliteDB.hpp"
 #include "getHomePath.hpp"
 
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
-#include <functional>
 #include <iostream>
 #include <optional>
-#include <random>
 #include <stdexcept>
-#include <unordered_set>
-
-std::string
-generate_password(const std::string& id, const int random_ascii_lenght);
 
 int
 main(int argc, char** argv)
@@ -42,9 +38,6 @@ main(int argc, char** argv)
                 load_config();
 
         } else if (std::strcmp(argv[i], "gen") == 0) {
-
-            std::string password;
-
             if (using_config) [[likely]]
                 load_config();
 
@@ -57,8 +50,11 @@ main(int argc, char** argv)
                 if (++i != argc)
                     random_ascii_lenght = std::stod(argv[i]);
 
-                password = generate_password(key_id, random_ascii_lenght);
-                std::cout << '\n' << password << '\n';
+                Password pass({ key_id, random_ascii_lenght });
+
+                std::cout << '\n' << pass.str() << '\n';
+
+                PassmanDB(appdata_dir / "passman.db");
             }
 
         } else if (std::strcmp(argv[i], "status") == 0) {
@@ -80,44 +76,3 @@ main(int argc, char** argv)
 
     return 0;
 }
-
-std::string
-generate_password(const std::string& id, const int random_ascii_lenght)
-{
-
-    constexpr auto latin_litera_count = 26;
-    constexpr auto arabic_digits_count = 10;
-
-    std::array<char, latin_litera_count * 2 + arabic_digits_count> symbols_map;
-
-    size_t arr_i = 0;
-
-    for (char i = 'A'; i <= 'Z'; i++, arr_i++)
-        symbols_map[arr_i] = i;
-
-    for (char i = 'a'; i <= 'z'; i++, arr_i++)
-        symbols_map[arr_i] = i;
-
-    for (char i = '0'; i <= '9'; i++, arr_i++)
-        symbols_map[arr_i] = i;
-
-    const std::default_random_engine eng;
-    const std::uniform_int_distribution<uint> distr(0, symbols_map.size());
-    auto get_rand = std::bind(distr, eng);
-
-    std::string res;
-
-    res += '_';
-    res += id;
-    res += '_';
-
-    for (int i = 0; i < random_ascii_lenght; i++)
-        res += symbols_map[get_rand()];
-
-    res += '_';
-    res += id;
-    res += '_';
-
-    return res;
-}
-
