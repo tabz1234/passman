@@ -45,12 +45,12 @@ main(int argc, char** argv)
                 throw std::runtime_error(
                   "After gen you must specify password id ");
             else {
-                const std::string key_id = argv[i];
+                const std::string pass_id = argv[i];
 
                 if (++i != argc)
                     random_ascii_lenght = std::stod(argv[i]);
 
-                Password pass({ key_id, random_ascii_lenght });
+                Password pass({ pass_id, random_ascii_lenght });
 
                 std::cout << '\n' << pass.str() << '\n';
 
