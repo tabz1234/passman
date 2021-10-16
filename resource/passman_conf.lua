@@ -7,10 +7,8 @@ function Lprint(val)
 print(LUA_PREFIX..val);
 end
 
-A=3.56
-
 AppDataDir = "/usr/lib/passman"
-DataBaseDir = AppDataDir.."/DB.d/"
+RandomAsciiLenght = 30
 
 if DEBUG == true then Lprint(" Using appdata path :"..AppDataDir) end
 

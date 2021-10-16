@@ -1,5 +1,6 @@
 #include "LuaConfigFile.hpp"
 #include "createFile.hpp"
+#include "getHomePath.hpp"
 
 #include <fstream>
 
@@ -12,8 +13,11 @@ LuaConfigFile::LuaConfigFile(const std::filesystem::path& filepath) noexcept
 
     if (!std::filesystem::exists(filepath_)) [[unlikely]] {
         createFile(filepath_);
+
         std::ofstream ofs(filepath_.c_str(), std::ios::out | std::ios::app);
-        ofs << "AppDataDir = \"/usr/lib/passman\"";
+        ofs << "AppDataDir = \"" + get_home_path().string() + "/.local" +
+                 "/passman" + "\"\n";
+        ofs << "RandomAsciiLenght = 30";
     }
 
     luaL_dofile(plua_state_, filepath.c_str());

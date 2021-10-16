@@ -1,8 +1,8 @@
 #basic configuration :
-set (Label exec)
+set (Label passman)
 set (Standard 20)
 set (Link_libs -lsqlite3 -llua)
-set (compiler gcc)#clang have linkage hell
+set (compiler gcc)# linkage hell with clang
 
 #cmake code :
 cmake_minimum_required(VERSION 3.18.4 FATAL_ERROR)
