@@ -18,15 +18,12 @@ main(int argc, char** argv)
 
     const std::filesystem::path home_path = get_home_path();
 
-    std::filesystem::path appdata_dir =
-      home_path / ".local" / "share" / "passman";
+    std::filesystem::path appdata_dir = home_path / ".local" / "share" / "passman";
 
     int random_ascii_lenght = 30;
 
-    const auto load_config =
-      [&home_path, &appdata_dir, &random_ascii_lenght]() -> void {
-        LuaConfigFile cfg(home_path / ".config" / "passman" /
-                          "passman_conf.lua");
+    const auto load_config = [&]() -> void {
+        LuaConfigFile cfg(home_path / ".config" / "passman" / "passman_conf.lua");
 
         appdata_dir = cfg.get_string("AppDataDir");
         random_ascii_lenght = cfg.get_number("RandomAsciiLenght");
@@ -37,24 +34,30 @@ main(int argc, char** argv)
             if (using_config) [[likely]]
                 load_config();
 
+            if (++i == argc) [[unlikely]]
+                throw std::runtime_error("After get you must specify password id ");
+            else {
+                const std::string pass_id = argv[i];
+
+                PassmanDB db(appdata_dir / "passman.db");
+                db.get(pass_id);
+            }
         } else if (std::strcmp(argv[i], "gen") == 0) {
             if (using_config) [[likely]]
                 load_config();
 
-            if (++i == argc)
-                throw std::runtime_error(
-                  "After gen you must specify password id ");
+            if (++i == argc) [[unlikely]]
+                throw std::runtime_error("After gen you must specify password id ");
             else {
-                const std::string pass_id = argv[i];
+                const Password pass({ argv[i], random_ascii_lenght });
 
                 if (++i != argc)
                     random_ascii_lenght = std::stod(argv[i]);
 
-                Password pass({ pass_id, random_ascii_lenght });
+                std::cout << '\n' << pass.str_ << '\n';
 
-                std::cout << '\n' << pass.str() << '\n';
-
-                PassmanDB(appdata_dir / "passman.db");
+                PassmanDB db(appdata_dir / "passman.db");
+                db.add(pass);
             }
 
         } else if (std::strcmp(argv[i], "status") == 0) {
@@ -64,14 +67,12 @@ main(int argc, char** argv)
             std::exit(EXIT_SUCCESS);
         } else if (std::strcmp(argv[i], "--no-config") == 0) {
             using_config = false;
-        } else if (std::strcmp(argv[i], "-h") == 0 ||
-                   std::strcmp(argv[i], "--help") == 0) {
+        } else if (std::strcmp(argv[i], "-h") == 0 || std::strcmp(argv[i], "--help") == 0) {
             const std::string help_message = "HELP_MSG\n";
             std::cout << help_message << '\n';
             std::exit(EXIT_SUCCESS);
         } else
-            std::cout << "Unrecognized command line option :" +
-                           std::string(argv[i]) + " ,type \"passman --help\"\n";
+            std::cout << "Unrecognized command line option :" + std::string(argv[i]) + " ,type \"passman --help\"\n";
     }
 
     return 0;

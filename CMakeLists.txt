@@ -17,7 +17,9 @@ else()
 	message(FATAL_ERROR "Unsupported compiler")
 endif()
 
-project(${Label} LANGUAGES CXX )
+project(${Label})
+
+set(CMAKE_C_STANDARD 17)
 
 set(CMAKE_CXX_STANDARD ${Standard})
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -27,10 +29,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 
+file(GLOB CXX_SOURCES "src/*.cpp")
+file(GLOB C_SOURCES "src/*.c")
 
-file(GLOB SOURCES "src/*.cpp")
 add_executable(${PROJECT_NAME} 
-	${SOURCES}
+	${CXX_SOURCES} 
+	${C_SOURCES}
 	)
 
 if(CMAKE_CONFIGURATION_TYPES)

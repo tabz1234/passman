@@ -6,6 +6,7 @@
 
 #include <filesystem>
 #include <string>
+#include <vector>
 
 class PassmanDB
 {
@@ -14,7 +15,8 @@ class PassmanDB
   public:
     PassmanDB(const std::filesystem::path& db_path) noexcept;
 
-    std::string get(const Password& password) noexcept;
+    void get(const std::string& password) noexcept;
+    std::vector<Password> get() noexcept;
 
     void add(const Password& password) noexcept;
 };

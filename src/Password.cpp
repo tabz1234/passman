@@ -39,9 +39,3 @@ Password::Password(const PasswordInfo& info) noexcept
     str_ += info_.id_;
     str_ += '_';
 }
-
-std::string
-Password::str() noexcept
-{
-    return str_;
-}

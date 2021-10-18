@@ -15,8 +15,7 @@ LuaConfigFile::LuaConfigFile(const std::filesystem::path& filepath) noexcept
         createFile(filepath_);
 
         std::ofstream ofs(filepath_.c_str(), std::ios::out | std::ios::app);
-        ofs << "AppDataDir = \"" + get_home_path().string() + "/.local" +
-                 "/passman" + "\"\n";
+        ofs << "AppDataDir = \"" + get_home_path().string() + "/.local" + "/share" + "/passman" + "\"\n";
         ofs << "RandomAsciiLenght = 30";
     }
 

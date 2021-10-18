@@ -3,15 +3,12 @@
 
 #include "PasswordInfo.hpp"
 
-class Password
+struct Password
 {
     std::string str_;
     PasswordInfo info_;
 
-  public:
     Password(const PasswordInfo& info) noexcept;
-
-    std::string str() noexcept;
 };
 
 #endif

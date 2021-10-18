@@ -2,21 +2,24 @@
 #include "createFile.hpp"
 
 #include <filesystem>
+#include <iostream>
 #include <stdexcept>
 
-static int
-sql_callback(void* NotUsed, int argc, char** argv, char** azColName)
-{}
-
-void
+sqlite_return*
 SQliteDB::execute(const std::string& sql_statement) noexcept
 {
-    if (sqlite3_exec(pdb_, sql_statement.c_str(), nullptr, nullptr, nullptr))
+    sqlite_return* ret = (sqlite_return*)malloc(sizeof(sqlite_return));
+
+    int rc = sqlite3_exec(pdb_, sql_statement.c_str(), sql_callback, ret, nullptr);
+    if (rc)
         throw std::runtime_error("sqlite3_exec() returned true");
+
+    return ret;
 }
 SQliteDB::SQliteDB(const std::filesystem::path& dbpath) noexcept
   : dbpath_{ dbpath }
 {
+
     if (!std::filesystem::exists(dbpath_)) [[unlikely]]
         std::filesystem::create_directories(dbpath_.parent_path());
 
