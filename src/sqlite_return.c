@@ -15,8 +15,6 @@ delete_sqlite_return(struct sqlite_return* pobj)
     }
     free(pobj->ppkeys_);
     free(pobj->ppvalues_);
-
-    free(pobj);
 }
 
 int

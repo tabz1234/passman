@@ -1,21 +1,11 @@
 #include "SQliteDB.hpp"
 #include "createFile.hpp"
+#include "sqlite_return.h"
 
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
 
-sqlite_return*
-SQliteDB::execute(const std::string& sql_statement) noexcept
-{
-    sqlite_return* ret = (sqlite_return*)malloc(sizeof(sqlite_return));
-
-    int rc = sqlite3_exec(pdb_, sql_statement.c_str(), sql_callback, ret, nullptr);
-    if (rc)
-        throw std::runtime_error("sqlite3_exec() returned true");
-
-    return ret;
-}
 SQliteDB::SQliteDB(const std::filesystem::path& dbpath) noexcept
   : dbpath_{ dbpath }
 {

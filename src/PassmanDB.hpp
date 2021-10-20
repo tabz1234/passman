@@ -8,14 +8,13 @@
 #include <string>
 #include <vector>
 
-class PassmanDB
+class PassmanDB : public SQliteDB
 {
-    SQliteDB sqlite_db_;
 
   public:
     PassmanDB(const std::filesystem::path& db_path) noexcept;
 
-    void get(const std::string& password) noexcept;
+    Password get(const std::string& password) noexcept;
     std::vector<Password> get() noexcept;
 
     void add(const Password& password) noexcept;

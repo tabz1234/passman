@@ -1,11 +1,16 @@
 #include "Password.hpp"
 
 #include <array>
-#include <functional>
 #include <random>
 
-Password::Password(const PasswordInfo& info) noexcept
-  : info_{ info }
+Password::Password(const std::string& str, const unixtime_t last_acces, const unixtime_t created) noexcept
+  : str_{ str }
+  , created_{ std::chrono::system_clock::to_time_t(created) }
+  , last_acces_{ std::chrono::system_clock::to_time_t(last_acces) }
+{}
+Password::Password(const std::string& id, const int random_ascii_lenght) noexcept
+  : id_{ id }
+  , created_{ std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) }
 {
 
     constexpr auto latin_litera_count = 26;
@@ -24,18 +29,19 @@ Password::Password(const PasswordInfo& info) noexcept
     for (char i = '0'; i <= '9'; i++, arr_i++)
         symbols_map[arr_i] = i;
 
-    const std::default_random_engine eng;
-    const std::uniform_int_distribution<uint> distr(0, symbols_map.size());
-    auto get_rand = std::bind(distr, eng);
+    std::random_device seed_device;
+
+    std::default_random_engine eng(seed_device());
+    std::uniform_int_distribution<size_t> distr(0, symbols_map.size());
 
     str_ += '_';
-    str_ += info_.id_;
+    str_ += id_;
     str_ += '_';
 
-    for (int i = 0; i < info_.random_ascii_lenght_; i++)
-        str_ += symbols_map[get_rand()];
+    for (int i = 0; i < random_ascii_lenght; i++)
+        str_ += symbols_map[distr(eng)];
 
     str_ += '_';
-    str_ += info_.id_;
+    str_ += id_;
     str_ += '_';
 }
