@@ -29,19 +29,14 @@ Password::Password(const std::string& id, const int random_ascii_lenght) noexcep
     for (char i = '0'; i <= '9'; i++, arr_i++)
         symbols_map[arr_i] = i;
 
-    std::random_device seed_device;
+    std::default_random_engine eng(std::random_device{}());
+    std::uniform_int_distribution<size_t> distr(0, symbols_map.size() - 1);
 
-    std::default_random_engine eng(seed_device());
-    std::uniform_int_distribution<size_t> distr(0, symbols_map.size());
+    str_ += "_" + id_ + "_";
 
-    str_ += '_';
-    str_ += id_;
-    str_ += '_';
-
-    for (int i = 0; i < random_ascii_lenght; i++)
+    for (int i = 0; i < random_ascii_lenght; i++) {
         str_ += symbols_map[distr(eng)];
+    }
 
-    str_ += '_';
-    str_ += id_;
-    str_ += '_';
+    str_ += "_" + id_ + "_";
 }
