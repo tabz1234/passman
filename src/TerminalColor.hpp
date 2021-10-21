@@ -28,6 +28,8 @@ class FGColor : public TerminalColor
 
   public:
     FGColor(const int r, const int g, const int b) noexcept;
+
+    operator std::string() noexcept;
 };
 
 class BGColor : public TerminalColor
@@ -36,6 +38,8 @@ class BGColor : public TerminalColor
 
   public:
     BGColor(const int r, const int g, const int b) noexcept;
+
+    operator std::string() noexcept;
 };
 
 #endif

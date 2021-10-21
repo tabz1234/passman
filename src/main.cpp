@@ -1,5 +1,6 @@
 #include "LuaConfigFile.hpp"
 #include "PassmanDB.hpp"
+#include "PassmanFatalError.hpp"
 #include "Password.hpp"
 #include "SQliteDB.hpp"
 #include "TerminalColor.hpp"
@@ -35,7 +36,7 @@ main(int argc, char** argv)
                 load_config();
 
             if (i + 1 == argc) [[unlikely]]
-                throw std::runtime_error("After get you must specify password id ");
+                throw PassmanFatalError("After get you must specify password id ");
             else {
                 const std::string pass_id = argv[i + 1];
 
@@ -56,7 +57,7 @@ main(int argc, char** argv)
                 const std::string pass_id = argv[i + 1];
 
                 if (i + 2 != argc) {
-                    random_ascii_lenght = std::stod(argv[i + 2]);
+                    random_ascii_lenght = std::stoi(argv[i + 2]);
                 }
 
                 const Password pass(pass_id, random_ascii_lenght);

@@ -8,8 +8,9 @@
 #include <string>
 #include <vector>
 
-class PassmanDB : public SQliteDB
+class PassmanDB
 {
+    SQliteDB db_;
 
   public:
     PassmanDB(const std::filesystem::path& db_path) noexcept;

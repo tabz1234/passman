@@ -19,8 +19,16 @@ FGColor::FGColor(const int r, const int g, const int b) noexcept
 {
     esc_seq_.replace(2, 2, attr_);
 }
+FGColor::operator std::string() noexcept
+{
+    return esc_seq_;
+}
 BGColor::BGColor(const int r, const int g, const int b) noexcept
   : TerminalColor({ r, g, b })
 {
     esc_seq_.replace(2, 2, attr_);
+}
+BGColor::operator std::string() noexcept
+{
+    return esc_seq_;
 }
