@@ -34,7 +34,7 @@ sql_callback(void* pvoid_ret, int rows, char** ppvalues, char** ppkeys)
 
     for (int i = 0; i < rows; i++) {
 
-        int len = inclusive_strlen(ppkeys[i] == 0 ? "NULL" : ppkeys[i]) * sizeof(char);
+        int len = inclusive_strlen(ppkeys[i]) * sizeof(char);
         pret->ppkeys_[i] = (char*)malloc(len);
 
         for (int j = 0; j < len; j++) {
@@ -45,12 +45,14 @@ sql_callback(void* pvoid_ret, int rows, char** ppvalues, char** ppkeys)
     pret->ppvalues_ = (char**)malloc(rows * sizeof(char*));
     for (int i = 0; i < rows; i++) {
 
-        int len = inclusive_strlen(ppvalues[i] == 0 ? "NULL" : ppvalues[i]) * sizeof(char);
-        pret->ppvalues_[i] = (char*)malloc(len);
-
         if (ppvalues[i] == 0) {
+            pret->ppvalues_[i] = 0;
             continue;
         }
+
+        int len = inclusive_strlen(ppvalues[i]) * sizeof(char);
+        pret->ppvalues_[i] = (char*)malloc(len);
+
         for (int j = 0; j < len; j++) {
             pret->ppvalues_[i][j] = ppvalues[i][j];
         }
