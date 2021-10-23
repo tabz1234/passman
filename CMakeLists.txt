@@ -89,6 +89,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
 ADD_CUSTOM_TARGET(run
 	COMMAND make -j2 && ./${PROJECT_NAME} && echo "\n"
 )
+install(TARGETS ${PROJECT_NAME}
+	CONFIGURATIONS ${CMAKE_CONFIGURATION_TYPES}
+        RUNTIME DESTINATION /usr/bin)
 
 #if(CMAKE_BUILD_TYPE STREQUAL "Release")
 #add_custom_command(TARGET ${PROJECT_NAME}
