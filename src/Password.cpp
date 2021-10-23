@@ -3,14 +3,26 @@
 #include <array>
 #include <random>
 
-Password::Password(const std::string& str, const unixtime_t last_acces, const unixtime_t created) noexcept
+Password::Password(const std::string& str,
+                   const unixtime_t last_acces,
+                   const unixtime_t created) noexcept
   : str_{ str }
   , created_{ std::chrono::system_clock::to_time_t(created) }
   , last_acces_{ std::chrono::system_clock::to_time_t(last_acces) }
 {}
-Password::Password(const std::string& id, const int random_ascii_lenght) noexcept
+Password::Password(const std::string& id, const std::string& str) noexcept
+
   : id_{ id }
-  , created_{ std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) }
+  , str_{ str }
+  , created_{ std::chrono::system_clock::to_time_t(
+      std::chrono::system_clock::now()) }
+  , last_acces_{ std::nullopt }
+{}
+Password::Password(const std::string& id,
+                   const int random_ascii_lenght) noexcept
+  : id_{ id }
+  , created_{ std::chrono::system_clock::to_time_t(
+      std::chrono::system_clock::now()) }
 {
 
     constexpr auto latin_litera_count = 26;
