@@ -5,14 +5,14 @@ RelType = "release"
 Nproc = 8
 
 function Print_finished()
-print("\n!!! INSTALL FINISHED !!!")
+print("\n!!! INSTALL SCRIPT FINISHED !!!")
 end
 
 for i = 1,#arg do
 if arg[i] == "--arch" then
 	os.execute("makepkg -si")
-	os.exit(0)
 	Print_finished()
+	os.exit(0)
 elseif arg[i] == "-g" then
 	RelType = "debug"
 	end
