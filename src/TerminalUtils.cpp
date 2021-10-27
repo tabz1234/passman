@@ -15,7 +15,7 @@ set_color(const FG& color) noexcept
 void
 set_color(const BG& color) noexcept
 {
-    std::cout << "\033["s + FG::attr_ + ";2;" +
+    std::cout << "\033["s + BG::attr_ + ";2;" +
                    std::to_string(color.rgb_.red_) + ";" +
                    std::to_string(color.rgb_.green_) + ";" +
                    std::to_string(color.rgb_.blue_) + "m";
