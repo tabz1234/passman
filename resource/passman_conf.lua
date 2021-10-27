@@ -1,7 +1,7 @@
 --This is default configuration file for passman.
 --Passman will execute this file and then get specific variable names for internal use.
 --All variables that affect passman behavior is initialized here by default.
---If you don't want to use this config, run "passman --no-config" and pass your settings through command line argumnets(see "passman --help")
+--If you don't want to use this config, run "passman --no-config" and pass your settings through command line arguments(see "passman --help")
 
 --All static data sush as database or known_id's file stored here.
 --Override with --appdatadir=
