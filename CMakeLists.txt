@@ -23,20 +23,20 @@ add_executable(${PROJECT_NAME}
 	)
 
 if(CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_CONFIGURATION_TYPES Debug Release)
+    set(CMAKE_CONFIGURATION_TYPES debug release)
 elseif(NOT CMAKE_BUILD_TYPE)
-    message(FATAL_ERROR "Missing Build Type! Run cmake with:\n-DCMAKE_BUILD_TYPE=Debug or Release")
+    message(FATAL_ERROR "Missing Build Type! Run cmake with:\n-DCMAKE_BUILD_TYPE=debug or release")
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-target_compile_options(${PROJECT_NAME} PUBLIC  -fPIC -Wall -Weffc++ -pedantic
+if(CMAKE_BUILD_TYPE STREQUAL "debug")
+target_compile_options(${PROJECT_NAME} PUBLIC  -Wall -Weffc++ -pedantic
 -Wextra 
 -Wshadow 
 -Wunreachable-code 
 -Wunused
 -Wunused-parameter)
 else()
-	target_compile_options(${PROJECT_NAME} PUBLIC  -fPIC  -s )
+	target_compile_options(${PROJECT_NAME} PUBLIC  -s )
 endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${Link_libs})
