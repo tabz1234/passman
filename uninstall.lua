@@ -1,9 +1,5 @@
 #!/bin/lua
 
-ExecName = "passman"
-RelType = "release"
-Nproc = 8
-
 function Print_finished()
 print("\n!!! UNINSTALL SCRIPT FINISHED !!!")
 end
