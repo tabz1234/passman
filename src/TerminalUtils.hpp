@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-struct FG
+struct FG final
 {
     RGB rgb_;
 
@@ -16,7 +16,7 @@ struct FG
       : rgb_{ red, green, blue }
     {}
 };
-struct BG
+struct BG final
 {
     RGB rgb_;
 

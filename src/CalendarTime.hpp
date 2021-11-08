@@ -3,7 +3,7 @@
 
 #include <ctime>
 
-class CalendarTime
+class CalendarTime final
 {
     std::time_t unixtime_;
 
