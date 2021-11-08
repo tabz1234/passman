@@ -1,6 +1,8 @@
 #ifndef GETHOMEPATH_HPP
 #define GETHOMEPATH_HPP
 
+#include "TerminalUtils.hpp"
+
 #include <cstdlib>
 #include <filesystem>
 #include <optional>

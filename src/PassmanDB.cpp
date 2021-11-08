@@ -43,8 +43,8 @@ PassmanDB::get(const std::string& password_id)
                                        : sql_data[0].ppvalues_[3]) };
 
     } catch (const std::exception& exception) {
-        printColorfulText<FG{ 255, 0, 0 }>(
-          "Cant get password with id :" + password_id + "\n");
+        printColorfulText<FG_RED>("Cant get password with id :" + password_id +
+                                  "\n");
         throw;
     }
 }
@@ -69,7 +69,7 @@ PassmanDB::get()
 
         return passwords;
     } catch (const std::exception& exception) {
-        printColorfulText<FG{ 255, 0, 0 }>("Cant get passwords(all) \n");
+        printColorfulText<FG_RED>("Cant get passwords(all) \n");
         throw;
     }
 }

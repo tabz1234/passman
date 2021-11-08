@@ -44,7 +44,7 @@ main(int argc, char** argv)
         if (argv[i][0] == '-') { // options sequences
 
             if (argv[i][1] == '\0') [[unlikely]] {
-                printColorfulText<FG{ 255, 0, 0 }>(
+                printColorfulText<FG_RED>(
                   "Unrecognized command line option :"s + argv[i] +
                   " ,type \"passman --help\"\n");
 
@@ -60,7 +60,7 @@ main(int argc, char** argv)
                     for (const auto& it : help_message)
                         std::cout << it;
                 } else {
-                    printColorfulText<FG{ 255, 0, 0 }>(
+                    printColorfulText<FG_RED>(
                       "Unrecognized long option :" + std::string(argv[i]) +
                       " ,type \"passman --help\"\n");
                 }
@@ -76,7 +76,7 @@ main(int argc, char** argv)
                         for (const auto& it : help_message)
                             std::cout << it;
                     } else {
-                        printColorfulText<FG{ 255, 0, 0 }>(
+                        printColorfulText<FG_RED>(
                           "Unrecognized short option :"s +
                           argv[i][short_options_iterator] +
                           " ,type \"passman --help\"\n");
@@ -117,13 +117,13 @@ main(int argc, char** argv)
                     load_config();
 
                 if (i + 1 == argc) [[unlikely]] {
-                    printColorfulText<FG{ 255, 0, 0 }>(
+                    printColorfulText<FG_RED>(
                       "After add you must specify password id \n");
                     break;
                 } else {
 
                     if (i + 2 == argc) {
-                        printColorfulText<FG{ 255, 0, 0 }>(
+                        printColorfulText<FG_RED>(
                           "You must specify password string after id \n");
                         break;
                     }
@@ -149,7 +149,7 @@ main(int argc, char** argv)
                     load_config();
 
                 if (i + 1 == argc) [[unlikely]] {
-                    printColorfulText<FG{ 255, 0, 0 }>(
+                    printColorfulText<FG_RED>(
                       "After gen you must specify password id \n");
                     break;
                 } else {
@@ -176,7 +176,7 @@ main(int argc, char** argv)
                     load_config();
 
                 if (i + 1 == argc) [[unlikely]] {
-                    printColorfulText<FG{ 255, 0, 0 }>(
+                    printColorfulText<FG_RED>(
                       "After rm you must specify password id \n");
                     break;
                 } else {
@@ -187,7 +187,7 @@ main(int argc, char** argv)
                     i = i + 1; // shift to end of command sequence
                 }
             } else {
-                printColorfulText<FG{ 255, 0, 0 }>(
+                printColorfulText<FG_RED>(
                   "Unrecognized command sequence argument:"s + argv[i] +
                   " ,type \"passman --help\"\n");
             }

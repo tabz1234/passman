@@ -16,6 +16,9 @@ struct FG final
       : rgb_{ red, green, blue }
     {}
 };
+
+constexpr FG FG_RED = FG{ 255, 0, 0 };
+
 struct BG final
 {
     RGB rgb_;
