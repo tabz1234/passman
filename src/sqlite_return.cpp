@@ -5,23 +5,19 @@
 #include <utility>
 
 static int
-inclusive_strlen(const char* str) noexcept
+inclusive_strlen(const char* str)
 {
     return strlen(str) + 1;
 }
 
-sqlite_return::sqlite_return(const int rc) noexcept
-  : rc_{ rc }
-{}
-sqlite_return::sqlite_return(const sqlite_return& lval) noexcept
-  : sqlite_return(lval.rows_count_, lval.ppvalues_, lval.ppkeys_)
+sqlite_return::sqlite_return(const sqlite_return& lval)
+  : sqlite_return{ lval.cols_, lval.ppvalues_, lval.ppkeys_ }
 {}
 
 sqlite_return&
-sqlite_return::operator=(const sqlite_return& lval) noexcept
+sqlite_return::operator=(const sqlite_return& lval)
 {
-    return *this =
-             sqlite_return(lval.rows_count_, lval.ppvalues_, lval.ppkeys_);
+    return *this = sqlite_return{ lval.cols_, lval.ppvalues_, lval.ppkeys_ };
 }
 
 sqlite_return&
@@ -30,26 +26,22 @@ sqlite_return::operator=(sqlite_return&& rval) noexcept
     std::swap(rval.ppkeys_, ppkeys_);
     std::swap(rval.ppvalues_, ppvalues_);
 
-    this->rc_ = rval.rc_;
-    this->rows_count_ = rval.rows_count_;
+    this->cols_ = rval.cols_;
 
     return *this;
 }
 sqlite_return::sqlite_return(sqlite_return&& rval) noexcept
-  : rows_count_{ rval.rows_count_ }
-  , rc_{ rval.rc_ }
+  : cols_{ rval.cols_ }
   , ppkeys_{ std::exchange(rval.ppkeys_, nullptr) }
   , ppvalues_{ std::exchange(rval.ppvalues_, nullptr) }
 {}
-sqlite_return::sqlite_return(int rows_count,
-                             char** ppvalues,
-                             char** ppkeys) noexcept
-  : rows_count_{ rows_count }
+sqlite_return::sqlite_return(int cols_, char** ppvalues, char** ppkeys)
+  : cols_{ cols_ }
 {
 
-    ppkeys_ = new char*[rows_count_];
+    ppkeys_ = new char*[cols_];
 
-    for (int i = 0; i < rows_count_; i++) {
+    for (int i = 0; i < cols_; i++) {
 
         const int len = inclusive_strlen(ppkeys[i]);
         ppkeys_[i] = new char[len];
@@ -59,8 +51,8 @@ sqlite_return::sqlite_return(int rows_count,
         }
     }
 
-    ppvalues_ = new char*[rows_count_];
-    for (int i = 0; i < rows_count_; i++) {
+    ppvalues_ = new char*[cols_];
+    for (int i = 0; i < cols_; i++) {
 
         if (ppvalues[i] == nullptr) {
             ppvalues_[i] = nullptr;
@@ -78,10 +70,16 @@ sqlite_return::sqlite_return(int rows_count,
 
 sqlite_return::~sqlite_return()
 {
-    for (int i = 0; i < rows_count_; i++) {
+    // note : SIGSEGV if indexing nullptr[0] => *(nullptr + 0)
+
+    for (int i = 0; i < cols_ && ppkeys_ != nullptr; i++) {
         delete[] ppkeys_[i];
+    }
+
+    for (int i = 0; i < cols_ && ppvalues_ != nullptr; i++) {
         delete[] ppvalues_[i];
     }
+
     delete[] ppkeys_;
     delete[] ppvalues_;
 }

@@ -1,11 +1,14 @@
-#basic configuration :
-set (Label passman)
-set (Standard 20)
-set (Link_libs -lsqlite3 -llua)
-#set (compiler gcc)
+# basic configuration :
+set(Label passman)
+set(Standard 20)
+set(Link_libs -lpthread -lsqlite3 -llua)
 
-#cmake code :
-cmake_minimum_required(VERSION 3.18.4 FATAL_ERROR)
+set(DEFAULT_ADDITIONAL_DEBUG_OPTIONS -O0 -Wall -Wextra -Weffc++ -pedantic )
+
+set(DEFAULT_ADDITIONAL_RELEASE_OPTIONS )
+
+# cmake code :
+cmake_minimum_required(VERSION 3.21)
 
 project(${Label})
 
@@ -16,29 +19,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
-file(GLOB CXX_SOURCES "src/*.cpp")
+file(GLOB C_OR_CPP_SOURCES "src/*.c*")
 
-add_executable(${PROJECT_NAME} 
-	${CXX_SOURCES} 
-	)
-
-if(CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_CONFIGURATION_TYPES debug release)
-elseif(NOT CMAKE_BUILD_TYPE)
-    message(FATAL_ERROR "Missing Build Type! Run cmake with:\n-DCMAKE_BUILD_TYPE=debug or release")
-endif()
+add_executable(${PROJECT_NAME} ${C_OR_CPP_SOURCES})
 
 if(CMAKE_BUILD_TYPE STREQUAL "debug")
-target_compile_options(${PROJECT_NAME} PUBLIC  -Wall -Weffc++ -pedantic
--Wextra 
--Wshadow 
--Wunreachable-code 
--Wunused
--Wunused-parameter)
+enable_testing()
+  target_compile_options(${PROJECT_NAME}
+                         PUBLIC ${DEFAULT_ADDITIONAL_DEBUG_OPTIONS})
 else()
-	target_compile_options(${PROJECT_NAME} PUBLIC  -s )
+  target_compile_options(${PROJECT_NAME}
+                         PUBLIC ${DEFAULT_ADDITIONAL_RELEASE_OPTIONS})
 endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${Link_libs})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
-
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src /usr/include)

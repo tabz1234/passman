@@ -5,7 +5,7 @@
 #include <fstream>
 
 static void
-createFile(const std::filesystem::path& filepath) noexcept
+createFile(const std::filesystem::path& filepath)
 {
     std::filesystem::create_directories(filepath.parent_path());
     std::ofstream(filepath.c_str(), std::ios::out);

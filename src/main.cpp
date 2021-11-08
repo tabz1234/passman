@@ -3,7 +3,9 @@
 #include "Password.hpp"
 #include "SQliteDB.hpp"
 #include "TerminalUtils.hpp"
+#include "generateRandomPassword.hpp"
 #include "getHomePath.hpp"
+#include "readFile.hpp"
 
 #include <cstdlib>
 #include <cstring>
@@ -16,18 +18,15 @@ using namespace std::string_literals;
 
 constexpr int STRCMP_EQUAL = 0;
 
-constexpr auto help_message = "HELP";
-
 int
 main(int argc, char** argv)
 {
     bool using_config = true;
-    int random_ascii_lenght = 30;
+    int password_len = 30;
 
     bool quiet = false;
 
     const auto home_path = get_home_path();
-
     auto appdata_dir = home_path / ".local" / "share" / "passman";
 
     const auto load_config = [&]() -> void {
@@ -35,29 +34,34 @@ main(int argc, char** argv)
                           "passman_conf.lua");
 
         appdata_dir = cfg.get_string("AppDataDir");
-        random_ascii_lenght = cfg.get_number("RandomAsciiLenght");
+        password_len = cfg.get_number("PasswordLenght");
+        quiet = cfg.get_bool("Quiet");
     };
+
+    const auto help_message = readFile("/usr/lib/passman/help_message.txt");
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') { // options sequences
+
             if (argv[i][1] == '\0') [[unlikely]] {
-                ColorfulText<FG{ 255, 0, 0 }>(
+                printColorfulText<FG{ 255, 0, 0 }>(
                   "Unrecognized command line option :"s + argv[i] +
                   " ,type \"passman --help\"\n");
+
             } else if (argv[i][1] == '-') { // long options
 
                 if (std::strcmp(argv[i] + 2, "no-config") == STRCMP_EQUAL) {
                     using_config = false;
-                } else if (std::strcmp(argv[i] + 2, "lenght=") ==
-                           STRCMP_EQUAL) {
+                } else if (std::string(argv[i] + 2).starts_with("lenght=")) {
 
                 } else if (std::strcmp(argv[i] + 2, "quiet") == STRCMP_EQUAL) {
                     quiet = true;
                 } else if (std::strcmp(argv[i] + 2, "help") == STRCMP_EQUAL) {
-                    std::cout << help_message;
+                    for (const auto& it : help_message)
+                        std::cout << it;
                 } else {
-                    ColorfulText<FG{ 255, 0, 0 }>(
-                      "Unrecognized option :" + std::string(argv[i]) +
+                    printColorfulText<FG{ 255, 0, 0 }>(
+                      "Unrecognized long option :" + std::string(argv[i]) +
                       " ,type \"passman --help\"\n");
                 }
             } else { // short options
@@ -69,13 +73,15 @@ main(int argc, char** argv)
                     } else if (argv[i][short_options_iterator] == 'q') {
                         quiet = true;
                     } else if (argv[i][short_options_iterator] == 'h') {
-                        std::cout << help_message;
+                        for (const auto& it : help_message)
+                            std::cout << it;
                     } else {
-                        ColorfulText<FG{ 255, 0, 0 }>(
-                          "Unrecognized option :"s +
+                        printColorfulText<FG{ 255, 0, 0 }>(
+                          "Unrecognized short option :"s +
                           argv[i][short_options_iterator] +
                           " ,type \"passman --help\"\n");
                     }
+
                     short_options_iterator++;
                 } while (argv[i][short_options_iterator] != '\0');
             }
@@ -86,8 +92,15 @@ main(int argc, char** argv)
                     load_config();
 
                 if (i + 1 == argc) [[unlikely]] {
-                    ColorfulText<FG{ 255, 0, 0 }>(
-                      "After get you must specify password id ");
+                    PassmanDB db(appdata_dir / "passman.db");
+
+                    const auto data = db.get();
+
+                    for (const auto& iter : data) {
+                        std::cout << iter.id_ << " : " << iter.str_ << '\n';
+                    }
+
+                    break;
                 } else {
                     const std::string pass_id = argv[i + 1];
 
@@ -95,67 +108,88 @@ main(int argc, char** argv)
                     const auto password = db.get(pass_id);
 
                     std::cout << '\n' << "Pass :" << password.str_ << '\n';
-                }
 
-                i = i + 1; // shift to end of command sequence
+                    i = i + 1; // shit to end of command sequence
+                }
             } else if (std::strcmp(argv[i], "add") == STRCMP_EQUAL) {
 
                 if (using_config) [[likely]]
                     load_config();
 
                 if (i + 1 == argc) [[unlikely]] {
-                    ColorfulText<FG{ 255, 0, 0 }>(
-                      "After add you must specify password id ");
+                    printColorfulText<FG{ 255, 0, 0 }>(
+                      "After add you must specify password id \n");
+                    break;
                 } else {
 
                     if (i + 2 == argc) {
-                        ColorfulText<FG{ 255, 0, 0 }>(
-                          "You must specify password string after id ");
+                        printColorfulText<FG{ 255, 0, 0 }>(
+                          "You must specify password string after id \n");
                         break;
                     }
 
                     const std::string pass_id = argv[i + 1];
                     const std::string pass_str = argv[i + 2];
 
-                    const Password pass(pass_id, pass_str);
+                    const Password pass{ .id_ = pass_id,
+                                         .str_ = pass_str,
+                                         .created_ = std::time(0) };
 
                     std::cout << '\n' << "ADD " << pass.str_ << '\n';
 
                     PassmanDB db(appdata_dir / "passman.db");
                     db.add(pass);
+
+                    i = i + 2; // shift to end of command sequence
                 }
 
-                i = i + 2; // shift to end of command sequence
             } else if (std::strcmp(argv[i], "gen") == STRCMP_EQUAL) {
 
                 if (using_config) [[likely]]
                     load_config();
 
                 if (i + 1 == argc) [[unlikely]] {
-                    ColorfulText<FG{ 255, 0, 0 }>(
-                      "After gen you must specify password id ");
+                    printColorfulText<FG{ 255, 0, 0 }>(
+                      "After gen you must specify password id \n");
+                    break;
                 } else {
                     const std::string pass_id = argv[i + 1];
 
-                    if (i + 2 != argc) {
-                        random_ascii_lenght = std::atoi(argv[i + 2]);
-                    }
-
-                    const Password pass(pass_id, random_ascii_lenght);
+                    const Password pass{ .id_ = pass_id,
+                                         .str_ = generateRandomPassword(
+                                           pass_id, password_len),
+                                         .created_ = std::time(0) };
 
                     std::cout << '\n' << pass.str_ << '\n';
 
                     PassmanDB db(appdata_dir / "passman.db");
+
                     db.add(pass);
+
+                    i = i + 1; // shift to end of command sequence
                 }
 
-                i = i + 2; // shift to end of command sequence
-            } else if (std::strcmp(argv[i], "status") == STRCMP_EQUAL) {
+            } else if (std::strcmp(argv[i], "purge") == STRCMP_EQUAL) {
+                std::filesystem::remove_all(appdata_dir);
             } else if (std::strcmp(argv[i], "rm") == STRCMP_EQUAL) {
+                if (using_config) [[likely]]
+                    load_config();
+
+                if (i + 1 == argc) [[unlikely]] {
+                    printColorfulText<FG{ 255, 0, 0 }>(
+                      "After rm you must specify password id \n");
+                    break;
+                } else {
+                    const std::string pass_id = argv[i + 1];
+
+                    PassmanDB db(appdata_dir / "passman.db");
+                    db.remove(pass_id);
+                    i = i + 1; // shift to end of command sequence
+                }
             } else {
-                ColorfulText<FG{ 255, 0, 0 }>(
-                  "Unrecognized command sequence argument:" +
-                  std::string(argv[i]) + " ,type \"passman --help\"\n");
+                printColorfulText<FG{ 255, 0, 0 }>(
+                  "Unrecognized command sequence argument:"s + argv[i] +
+                  " ,type \"passman --help\"\n");
             }
         }
     }

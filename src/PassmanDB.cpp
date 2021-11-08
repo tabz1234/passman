@@ -1,68 +1,94 @@
 #include "PassmanDB.hpp"
+#include "CalendarTime.hpp"
 #include "SQliteDB.hpp"
 #include "TerminalUtils.hpp"
 #include "createFile.hpp"
 #include "sqlite_return.hpp"
 
 #include <chrono>
+#include <cstring>
 #include <filesystem>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 
-PassmanDB::PassmanDB(const std::filesystem::path& db_path) noexcept
+PassmanDB::PassmanDB(const std::filesystem::path& db_path)
   : db_{ db_path }
 {
     if (std::filesystem::file_size(db_path) == 0) [[unlikely]] {
         const auto sql_data = db_.execute("CREATE TABLE PASSWORD( "
                                           "ID VARCHAR PRIMARY KEY NOT NULL, "
                                           "STR VARCHAR NOT NULL, "
-                                          "LAST_ACCES BIGINT, "
-                                          "CREATED BIGINT);");
-
-        if (sql_data.rc_) {
-            ColorfulText<FG{ 255, 0, 0 }>("Cant create sql table \n");
-        }
+                                          "CREATED BIGINT NOT NULL, "
+                                          "LAST_ACCES BIGINT);");
     }
 }
 
 Password
-PassmanDB::get(const std::string& pass_id) noexcept
+PassmanDB::get(const std::string& password_id)
 {
-    const auto sql_data =
-      db_.execute("SELECT * from PASSWORD where ID = '" + pass_id + "'");
-    if (sql_data.rc_) {
-        ColorfulText<FG{ 255, 0, 0 }>("Cant get password with id :" + pass_id +
-                                      "\n");
+    try {
+        const auto sql_data = db_.execute(
+
+          "SELECT * from PASSWORD where ID = '" + password_id + "'");
+
+        if (sql_data.size() == 0)
+            throw std::exception{};
+
+        return Password{ .id_ = sql_data[0].ppvalues_[0],
+                         .str_ = sql_data[0].ppvalues_[1],
+                         .created_ = std::atol(sql_data[0].ppvalues_[2]),
+                         .last_acces_ =
+                           std::atol(sql_data[0].ppvalues_[3] == nullptr
+                                       ? "0"
+                                       : sql_data[0].ppvalues_[3]) };
+
+    } catch (const std::exception& exception) {
+        printColorfulText<FG{ 255, 0, 0 }>(
+          "Cant get password with id :" + password_id + "\n");
+        throw;
     }
-
-    const Password temp(
-      sql_data.ppvalues_[1],
-      (sql_data.ppvalues_[2] == 0)
-        ? unixtime_t{}
-        : unixtime_t{ std::chrono::seconds(std::atoll(sql_data.ppvalues_[2])) },
-      unixtime_t{ std::chrono::seconds(std::atoll(sql_data.ppvalues_[3])) });
-
-    return temp;
 }
 std::vector<Password>
-PassmanDB::get() noexcept
-{}
+PassmanDB::get()
+{
+    try {
+
+        const auto sql_data = db_.execute("SELECT * from PASSWORD;");
+
+        std::vector<Password> passwords;
+        passwords.reserve(sql_data.size());
+
+        for (const auto& cur : sql_data) {
+            passwords.push_back({
+              cur.ppvalues_[0],
+              cur.ppvalues_[1],
+              std::atol(cur.ppvalues_[2]),
+              std::atol(cur.ppvalues_[3] == nullptr ? "0" : cur.ppvalues_[3]),
+            });
+        }
+
+        return passwords;
+    } catch (const std::exception& exception) {
+        printColorfulText<FG{ 255, 0, 0 }>("Cant get passwords(all) \n");
+        throw;
+    }
+}
 
 void
-PassmanDB::add(const Password& password) noexcept
+PassmanDB::remove(const std::string& pass_id)
 {
+    const auto sql_data =
+      db_.execute("DELETE from PASSWORD where ID = '" + pass_id + "';");
+}
 
+void
+PassmanDB::add(const Password& password)
+{
     const auto since_epoch = std::to_string(
       std::chrono::system_clock::now().time_since_epoch().count());
 
-    const auto sql_data = db_.execute("INSERT INTO PASSWORD (ID,STR,CREATED) "
+    const auto sql_data = db_.execute("INSERT INTO PASSWORD "
                                       "VALUES ('" +
                                       password.id_ + "','" + password.str_ +
-                                      "'," + since_epoch + ");");
-
-    if (sql_data.rc_) {
-        ColorfulText<FG{ 255, 0, 0 }>(
-          "Cant insert into database password with id :" + password.id_ + "\n");
-    }
+                                      "'," + since_epoch + ",NULL" + ");");
 }

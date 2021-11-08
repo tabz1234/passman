@@ -15,12 +15,21 @@ if arg[i] == "--arch" then
 	os.exit(0)
 elseif arg[i] == "-g" then
 	RelType = "debug"
+	else
+		print("Unknown cmd argument :"..arg[i]..",abort")
+		os.exit(1)
 	end
 end
 
 if(RelType == "release")then
 os.execute("sudo mkdir /usr/lib/passman")
 os.execute("sudo cp ./resource/passman_conf.lua /usr/lib/passman")
+os.execute("sudo cp ./resource/help_message.txt /usr/lib/passman")
+
+os.execute("sudo mkdir /usr/share/bash-completion/completions")
+os.execute("sudo mkdir /usr/share/fish/completions")
+os.execute("sudo cp ./resource/passman.bash /usr/share/bash-completion/completions/passman")
+os.execute("sudo cp ./resource/passman.fish /usr/share/fish/completions/passman.fish")
 end
 
 os.execute("mkdir build")
@@ -32,6 +41,5 @@ if(RelType == "release")then
 os.execute("sudo cp build/"..RelType.."/"..ExecName.." /bin")
 end
 
-os.execute("cd ../../")
 
 Print_finished()

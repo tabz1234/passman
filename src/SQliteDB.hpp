@@ -9,21 +9,18 @@ extern "C"
 #include "sqlite_return.hpp"
 
 #include <filesystem>
+#include <memory>
+#include <vector>
 
-class SQliteDB
+class SQliteDB final
 {
-    sqlite3* pdb_;
+    std::unique_ptr<sqlite3, void (*)(sqlite3*)> pdb_;
     const std::filesystem::path dbpath_;
 
   public:
-    sqlite_return execute(const std::string& sql_statement) noexcept;
+    SQliteDB(const std::filesystem::path& dbpath);
 
-    SQliteDB(const std::filesystem::path& dbpath) noexcept;
-
-    SQliteDB(const SQliteDB&) = delete;
-    SQliteDB& operator=(const SQliteDB&) = delete;
-
-    ~SQliteDB();
+    std::vector<sqlite_return> execute(const std::string& sql_statement);
 };
 
 #endif
