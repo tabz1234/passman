@@ -26,9 +26,17 @@ main(int argc, char** argv)
 
     bool quiet = false;
 
-    const auto home_path = get_home_path();
-    auto appdata_dir = home_path / ".local" / "share" / "passman";
+    std::filesystem::path home_path;
+    std::filesystem::path appdata_dir;
 
+    try {
+        home_path = get_home_path();
+    } catch (const std::runtime_error&) {
+        printColorfulText<FG_RED>(
+          "Failed to initialize home path, aborting. Is $HOME set? ");
+    }
+
+    appdata_dir = home_path / ".local" / "share" / "passman";
     const auto load_config = [&]() -> void {
         LuaConfigFile cfg(home_path / ".config" / "passman" /
                           "passman_conf.lua");
