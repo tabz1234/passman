@@ -1,36 +1,63 @@
-# basic configuration :
-set(Label passman)
-set(Standard 20)
-set(Link_libs -lpthread -lsqlite3 -llua)
-
-set(DEFAULT_ADDITIONAL_DEBUG_OPTIONS -O0 -Wall -Wextra -Weffc++ -pedantic )
-
-set(DEFAULT_ADDITIONAL_RELEASE_OPTIONS )
-
-# cmake code :
-cmake_minimum_required(VERSION 3.21)
-
-project(${Label})
-
-set(CMAKE_C_STANDARD 17)
-set(CMAKE_CXX_STANDARD ${Standard})
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+cmake_minimum_required(VERSION 3.15)
 
 
-file(GLOB C_OR_CPP_SOURCES "src/*.c*")
+set(ProjectName test)
 
-add_executable(${PROJECT_NAME} ${C_OR_CPP_SOURCES})
+project(${ProjectName} CXX)
+include(cmake/StandardProjectSettings.cmake)
+include(cmake/PreventInSourceBuilds.cmake)
 
-if(CMAKE_BUILD_TYPE STREQUAL "debug")
-enable_testing()
-  target_compile_options(${PROJECT_NAME}
-                         PUBLIC ${DEFAULT_ADDITIONAL_DEBUG_OPTIONS})
-else()
-  target_compile_options(${PROJECT_NAME}
-                         PUBLIC ${DEFAULT_ADDITIONAL_RELEASE_OPTIONS})
+add_library(project_options INTERFACE)
+target_compile_features(project_options INTERFACE cxx_std_20)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+  option(ENABLE_BUILD_WITH_TIME_TRACE "Enable -ftime-trace to generate time tracing .json files on clang" OFF)
+  if(ENABLE_BUILD_WITH_TIME_TRACE)
+    target_compile_options(project_options INTERFACE -ftime-trace)
+  endif()
 endif()
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${Link_libs})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src /usr/include)
+add_library(project_warnings INTERFACE)
+
+include(cmake/Cache.cmake)
+
+include(cmake/Linker.cmake)
+configure_linker(project_options)
+
+include(cmake/CompilerWarnings.cmake)
+set_project_warnings(project_warnings)
+
+include(cmake/Sanitizers.cmake)
+enable_sanitizers(project_options)
+
+include(cmake/StaticAnalyzers.cmake)
+
+option(ENABLE_PCH "Enable Precompiled Headers" OFF)
+if(ENABLE_PCH)
+  target_precompile_headers(
+    project_options
+    INTERFACE
+    <vector>
+    <string>
+    <iostream>
+    <type_traits>
+    <map>
+    <list>
+    <forward_list>
+    <optional>
+    <stdexcept>
+    <memory>
+    <utility>)
+endif()
+
+add_executable(${ProjectName}
+	./src/main.cpp
+	./src/sqlite/DataBase.cpp
+	./src/sqlite/DataBaseContext.cpp
+	./src/sqlite/Data.cpp
+	)
+
+add_subdirectory(./lib/sqlite)
+
+target_link_libraries(${ProjectName} project_options project_warnings)
+target_link_libraries(${ProjectName} sqlite)
