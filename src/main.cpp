@@ -1,47 +1,63 @@
 #include <iostream>
-class X {
-  public:
-    void g() {
-        f();
-    }
-    X() {
-        g();
-    }
+#include <ranges>
 
-  private:
-    virtual void f() = 0;
-};
-class Y : private X {
-  public:
-    void f() {
-    }
-    Y() {
-    }
-};
 #include "sqlite/DataBase.hpp"
 
+template <typename T, typename FunctorT>
+auto operator>>=(T val, FunctorT func) -> std::optional<decltype(func(*val))> {
+    if (val.has_value()) {
+        return func(val);
+    } else {
+        return std::optional<T>{};
+    }
+}
+
 int main() {
-    SQLite::DataBase db("test.db");
+    SQLite::DataBase db{"test.db"};
 
-    const auto v = db.execute("CREATE TABLE PASSWORD( "
-                              "ID VARCHAR PRIMARY KEY NOT NULL, "
-                              "STR VARCHAR NOT NULL, "
-                              "CREATED BIGINT NOT NULL, "
-                              "LAST_ACCES BIGINT);");
+    const auto v = db.execute("CREATE TABLE CREDENTIALS( "
+                              "LOGIN TEXT PRIMARY KEY NOT NULL, "
+                              "PASSWORD TEXT NOT NULL, "
+                              "CREATED INTEGER NOT NULL, "
+                              "LAST_ACCESS INTEGER) STRICT;");
 
-    db.execute("INSERT INTO PASSWORD "
+    db.execute("INSERT INTO CREDENTIALS "
                "VALUES ('"
-               "github_ww3"
-               "','"
-               "pass"
+               "BLOB_VAL"
                "',"
+               "'NULL ))))))))'"
+               ","
                "12343"
-               ",122"
+               ",NULL"
                ");");
+    db.execute(""
+               "SELECT * from CREDENTIALS"
+               ";");
 
-    const auto res = db.requestData("SELECT * from PASSWORD;");
-    std::cout << res.value().front().keys_[3];
-    int i = 1;
-    i++ + ++i;
-    Y x;
+    auto res_ = db.requestData("SELECT * from CREDENTIALS;");
+
+    for (const auto& data : *res_) {
+        std::cout << "=======NODE START=======\n";
+        for (const auto& key : data.keys_) {
+            std::cout << "Key :" << key << '\n';
+        }
+        for (const auto& val : data.values_) {
+            std::cout << "Value :" << val.value_or("NULL VALUE") << '\n';
+        }
+    }
+    db.requestData("SELECT * FROM CREDENTIALS;") >>= [&](auto res) -> std::optional<decltype(res)> {
+        std::cout << "\n========CHANGE======\n" << '\n';
+
+        for (const auto& data : res.value()) {
+            std::cout << "=======NODE START=======\n";
+            for (const auto& key : data.keys_) {
+                std::cout << "Key :" << key << '\n';
+            }
+            for (const auto& val : data.values_) {
+                std::cout << "Value :" << val.value_or("NULL VALUE") << '\n';
+            }
+        }
+    };
+
+    return 0;
 }

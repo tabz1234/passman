@@ -23,8 +23,8 @@ namespace SQLite {
             DataBaseContext(const DataBaseContext&) = delete;
             DataBaseContext& operator=(const DataBaseContext&) = delete;
 
-            DataBaseContext(DataBaseContext&&) = delete;
-            DataBaseContext& operator=(DataBaseContext&&) = delete;
+            DataBaseContext(DataBaseContext&&) noexcept = delete;
+            DataBaseContext& operator=(DataBaseContext&&) noexcept = delete;
         };
     } // namespace Impl_
 } // namespace SQLite
