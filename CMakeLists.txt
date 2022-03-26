@@ -1,14 +1,14 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.18)
 
 
-set(ProjectName test)
+set(ProjectName passman)
 
-project(${ProjectName} CXX)
+project(${ProjectName} LANGUAGES CXX)
 include(cmake/StandardProjectSettings.cmake)
-include(cmake/PreventInSourceBuilds.cmake)
 
 add_library(project_options INTERFACE)
-target_compile_features(project_options INTERFACE cxx_std_23)
+target_compile_features(project_options INTERFACE cxx_std_20)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
   option(ENABLE_BUILD_WITH_TIME_TRACE "Enable -ftime-trace to generate time tracing .json files on clang" OFF)
@@ -32,32 +32,45 @@ enable_sanitizers(project_options)
 
 include(cmake/StaticAnalyzers.cmake)
 
-option(ENABLE_PCH "Enable Precompiled Headers" OFF)
+option(ENABLE_PCH "Enable Precompiled Headers" ON)
 if(ENABLE_PCH)
   target_precompile_headers(
     project_options
     INTERFACE
     <vector>
     <string>
+    <chrono>
+    <queue>
     <iostream>
+    <cstdlib>
+    <thread>
     <type_traits>
-    <map>
-    <list>
-    <forward_list>
+    <unordered_map>
     <optional>
-    <stdexcept>
     <memory>
     <utility>)
 endif()
 
 add_executable(${ProjectName}
-	./src/main.cpp
+	./src/passman/main.cpp
+	./src/passman/CredentialsSource.cpp
+	./src/passman/println.cpp
+	./src/passman/cmdline/parse_arguments.cpp
+	./src/passman/fs/touch_appdata_dir.cpp
+	./src/passman/fs/get_home_path.cpp
+	./src/passman/fs/cd_to_appdata_dir.cpp
+	./src/passman/fs/is_empty.cpp
+
 	./src/sqlite/DataBase.cpp
-	./src/sqlite/DataBaseContext.cpp
-	./src/sqlite/Data.cpp
+	./src/sqlite/impl/DataBaseContext.cpp
+	./src/sqlite/error/to_str.cpp
+
+	./src/util/TerminalPrinter.cpp
+
 	)
 
 add_subdirectory(./lib/sqlite)
 
+target_link_libraries(${ProjectName} -lpthread)
 target_link_libraries(${ProjectName} project_options project_warnings)
 target_link_libraries(${ProjectName} sqlite)
