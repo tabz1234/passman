@@ -54,7 +54,6 @@ endif()
 add_executable(${ProjectName}
 	./src/passman/main.cpp
 	./src/passman/CredentialsSource.cpp
-	./src/passman/println.cpp
 	./src/passman/cmdline/parse_arguments.cpp
 	./src/passman/fs/touch_appdata_dir.cpp
 	./src/passman/fs/get_home_path.cpp

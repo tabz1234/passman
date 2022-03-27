@@ -7,7 +7,7 @@
 #include "../passman/fs/cd_to_appdata_dir.hpp"
 #include "../passman/fs/is_empty.hpp"
 #include "../passman/fs/touch_appdata_dir.hpp"
-#include "../passman/msg.hpp"
+#include "../passman/println.hpp"
 
 #include "../sqlite/DataBase.hpp"
 #include "../sqlite/StaticData.hpp"
@@ -27,7 +27,7 @@ int main(const int argc, const char** const argv) noexcept
     SQLite::DataBase db{credentials_db_fname};
 
     fcheck(!FS::is_empty(credentials_db_fname), [&ldb = db] {
-        println("Creating new credentials database ...");
+        println("Creating credentials database ...");
         auto&& create_errc = ldb.execute("CREATE TABLE CREDENTIALS( "
                                          "LOGIN TEXT PRIMARY KEY NOT NULL, "
                                          "PASSWORD TEXT NOT NULL, "
