@@ -23,6 +23,7 @@ struct TerminalPrinter final {
 
     void queue_T(const std::string_view) noexcept;
     void queue_T(const char) noexcept;
+    void queue_T(const int) noexcept = delete;
     void queue() noexcept;
 };
 

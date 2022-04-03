@@ -4,8 +4,10 @@
 
 #include "../../util/ExitCode.hpp"
 #include "../../util/fcheck.hpp"
+
 #include "../err_msg.hpp"
 #include "function/identifiers.hpp"
+#include <unistd.h>
 
 using namespace Passman::CmdLine;
 
@@ -18,46 +20,50 @@ Passman::CmdLine::parse_arguments(const int argc, const char** const argv, Passm
     std::vector<int> index_vec;
     index_vec.reserve(argc);
 
-    auto to_sv = [](const auto val) {
-        return std::string_view{val};
-    };
-
-    auto on_quiet_override = [&l_app_settings = app_settings] {
+    auto on_quiet_override = [&l_app_settings = app_settings]() noexcept {
         l_app_settings.quiet_ = true;
     };
-    auto on_interactive_override = [&l_app_settings = app_settings] {
+    auto on_interactive_override = [&l_app_settings = app_settings]() noexcept {
         l_app_settings.interactive_ = true;
     };
-    auto on_help = [] {
-        const char* help_txt =
+    const auto on_help = []() noexcept {
+        const char help_txt[] =
 #include "../../../blob/help.txt"
-            ;
-        println(help_txt);
+            "\n";
+
+        tprinter.flush();
+        write(STDOUT_FILENO, help_txt, sizeof(help_txt));
+
+        std::exit(exit_failure);
+    };
+
+    const auto is_fun_id = [](const std::string_view sv) noexcept {
+        return !(std::find(Function::identifiers.begin(), Function::identifiers.end(), sv) == Function::identifiers.end());
     };
 
     bool user_made_mistake = false;
 
     for (int i = 1; i < argc; ++i) {
-        if (argv[i][0] == '-') {
-            if (argv[i][1] == '\0') [[unlikely]] { // trailing dash
+        std::string_view cur_opt = argv[i];
+
+        if (cur_opt[0] == '-') {
+            if (cur_opt[1] == '\0') [[unlikely]] { // trailing dash
                 continue;
             }
-            else if (argv[i][1] == '-') { // long option
-                auto&& long_option = to_sv(argv[i]);
+            else if (cur_opt[1] == '-') { // long option
+                cur_opt.remove_prefix(2); // remove --
 
-                long_option.remove_prefix(2); // remove --
-
-                if (long_option == "quiet") {
+                if (cur_opt == "quiet") {
                     on_quiet_override();
                 }
-                else if (long_option == "interactive") {
+                else if (cur_opt == "interactive") {
                     on_interactive_override();
                 }
-                else if (long_option == "help") {
+                else if (cur_opt == "help") {
                     on_help();
                 }
                 else [[unlikely]] { // user mistake
-                    err_msg("Unknown long command line option :\"--", long_option, "\"");
+                    err_msg("Unknown long command line option :\"--", cur_opt, "\"");
                     user_made_mistake = true;
                 }
             }
@@ -66,7 +72,7 @@ Passman::CmdLine::parse_arguments(const int argc, const char** const argv, Passm
                 bool reached_null = false;
 
                 while (!reached_null) {
-                    switch (argv[i][ch_iter]) {
+                    switch (cur_opt[ch_iter]) {
                     case '\0': reached_null = true; break;
                     case 'q': on_quiet_override(); break;
                     case 'i': on_interactive_override(); break;
@@ -74,7 +80,7 @@ Passman::CmdLine::parse_arguments(const int argc, const char** const argv, Passm
                     default:
                         [[unlikely]]
                         {
-                            err_msg("Unknown short command line option :\"-", argv[i][ch_iter], "\"");
+                            err_msg("Unknown short command line option :\"-", cur_opt[ch_iter], "\"");
                             user_made_mistake = true;
                             break; // user mistake
                         }
@@ -83,10 +89,8 @@ Passman::CmdLine::parse_arguments(const int argc, const char** const argv, Passm
                 }
             }
         }
-        else if (to_sv(argv[i]) == "get") {
-            const bool zero_arg_overload =
-                argv[i + 1] == nullptr ||
-                !(std::find(Function::identifiers.begin(), Function::identifiers.end(), argv[i + 1]) == Function::identifiers.end());
+        else if (cur_opt == "get") {
+            const bool zero_arg_overload = argv[i + 1] == nullptr || is_fun_id(argv[i + 1]);
 
             index_vec.emplace_back(i);
 
@@ -98,10 +102,28 @@ Passman::CmdLine::parse_arguments(const int argc, const char** const argv, Passm
                 ++i;
             }
         }
-        else if (to_sv(argv[i]) == "add") {
+        else if (cur_opt == "add") {
+
+            if (i == (argc - 1) || is_fun_id(argv[i + 1])) [[unlikely]] { // user mistake
+                err_msg("You must call function add with one(login) or two(login and password) arguments");
+                user_made_mistake = true;
+                continue;
+            }
+
+            index_vec.emplace_back(i);
+
+            const bool one_arg_overload = argv[i + 2] == nullptr || is_fun_id(argv[i + 2]);
+            if (one_arg_overload) {
+                fun_vec.emplace_back(Function::add_1arg);
+                ++i;
+            }
+            else {
+                fun_vec.emplace_back(Function::add_2arg);
+                i += 2;
+            }
         }
         else [[unlikely]] { // user mistake
-            err_msg("Unknown function :\"", to_sv(argv[i]), "\"");
+            err_msg("Unknown function :\"", cur_opt, "\"");
             user_made_mistake = true;
         }
     }

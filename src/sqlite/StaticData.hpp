@@ -17,7 +17,9 @@ namespace SQLite {
         {
             for (int i = 0; i < TableSZ; ++i) {
                 keys_[i] = keys[i];
-                values_[i] = values[i] == nullptr ? std::optional<std::string>{} : values[i];
+                if (values[i] != nullptr) [[likely]] {
+                    values_[i] = values[i];
+                }
             }
         }
     };
